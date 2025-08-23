@@ -46,7 +46,7 @@ public class DirectoryController {
         NodeParser parser = parserFactory.getParser(fileName);
         List<Node> nodes = parser.parse(file.getInputStream());
         TreeBuilder treeBuilder = new TreeBuilder();
-        this.cachedRoot = treeBuilder.buildTree(nodes);;
+        this.cachedRoot = treeBuilder.buildTree(nodes);
         return "File uploaded and parsed successfully!";
     }
 
@@ -72,15 +72,21 @@ public class DirectoryController {
     }
 
     @GetMapping("/files/top-secret")
-    public String topSecret() { return NodeFormatter.formatAsList(classificationFilterService.listFilesByClassification(ensureRoot(), Set.of(Classification.TOP_SECRET))); }
+    public String topSecret() {
+        return NodeFormatter.formatAsList(classificationFilterService.listFilesByClassification(ensureRoot(), Set.of(Classification.TOP_SECRET)));
+    }
 
 
     @GetMapping("/files/secret")
-    public String secret() { return NodeFormatter.formatAsList(classificationFilterService.listFilesByClassification(ensureRoot(), Set.of(Classification.SECRET))); }
+    public String secret() {
+        return NodeFormatter.formatAsList(classificationFilterService.listFilesByClassification(ensureRoot(), Set.of(Classification.SECRET)));
+    }
 
 
     @GetMapping("/files/secret-or-top-secret")
-    public String secretOrTop() { return NodeFormatter.formatAsList(classificationFilterService.listFilesByClassification(ensureRoot(), Set.of(Classification.SECRET, Classification.TOP_SECRET))); }
+    public String secretOrTop() {
+        return NodeFormatter.formatAsList(classificationFilterService.listFilesByClassification(ensureRoot(), Set.of(Classification.SECRET, Classification.TOP_SECRET)));
+    }
 
 
     /**
@@ -88,15 +94,8 @@ public class DirectoryController {
      */
     @GetMapping("/files/non-public")
     public String getNonPublicUnderFolder(@RequestParam String folderName) {
-        if (cachedRoot == null) {
-            return "No tree cached. Upload a file first.";
-        }
-        try {
-            return NodeFormatter.formatAsList(
-                    folderFilterService.nonPublicUnderParticularFolder(cachedRoot, folderName)
-            );
-        } catch (Exception e) {
-            return "Error: " + e.getMessage();
-        }
+        return NodeFormatter.formatAsList(
+                folderFilterService.nonPublicUnderParticularFolder(ensureRoot(), folderName)
+        );
     }
 }
