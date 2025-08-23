@@ -1,21 +1,25 @@
 package eu.klavenessdigital.directory.parser;
 
+import eu.klavenessdigital.directory.domain.Node;
 import eu.klavenessdigital.directory.util.Constants;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
+import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Simple CSV parser that skips comments and header.
- */
+@Component
 public class CsvParser implements NodeParser {
 
     private final String delimiter;
     private final boolean hasHeader;
-
 
     // default constructor → uses default delimiter from Constants
     public CsvParser() {
@@ -30,32 +34,44 @@ public class CsvParser implements NodeParser {
 
     /**
      * Reads a CSV file and returns rows as list of String[].
-     * - Skips the header row.
-     * - Ignores commented lines (starting with # or //).
+     * - Skips header if configured
+     * - Ignores comment lines (# or //)
      */
-    public List<String[]> parse(String filePath) throws IOException {
-        List<String[]> rows = new ArrayList<>();
+    @Override
+    public List<Node> parse(InputStream fileStream) throws IOException {
+        List<Node> nodes = new ArrayList<Node>();
 
-        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
-            String line;
-            boolean headerSkipped = false;
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(fileStream, StandardCharsets.UTF_8))) {
 
-            while ((line = br.readLine()) != null) {
-                line = line.trim();
-                if (line.isEmpty()) continue; // skip empty
-                if (line.startsWith("#") || line.startsWith("//")) continue; // skip comments
+            CSVFormat format = CSVFormat.DEFAULT
+                    .withDelimiter(delimiter.charAt(0)) // Apache CSV needs single char delimiter
+                    .withIgnoreEmptyLines(true)
+                    .withTrim(true)
+                    .withIgnoreSurroundingSpaces(true)
+                    .withCommentMarker('#'); // ignores `#` as comment
 
-                if (hasHeader && !headerSkipped) {
-                    headerSkipped = true; // skip first non-comment line (header)
-                    continue;
+            if (hasHeader) {
+                format = format.withFirstRecordAsHeader();
+            }
+
+            try (CSVParser csvParser = new CSVParser(reader, format)) {
+                for (CSVRecord record : csvParser) {
+                    // Skip lines starting with //
+                    if (record.get(0).startsWith("//")) {
+                        continue;
+                    }
+
+                    String[] row = new String[record.size()];
+                    for (int i = 0; i < record.size(); i++) {
+                        row[i] = record.get(i);
+                    }
+                    nodes.add(NodeFactory.fromRow(row));
                 }
-
-                String[] parts = line.split(delimiter, -1); // keep empty fields
-                rows.add(parts);
             }
         }
 
-        return rows;
+        return nodes;
     }
 }
+
 

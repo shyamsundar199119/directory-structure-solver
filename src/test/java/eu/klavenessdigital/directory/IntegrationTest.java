@@ -1,94 +1,101 @@
 package eu.klavenessdigital.directory;
 
-
-import eu.klavenessdigital.directory.domain.Classification;
-import eu.klavenessdigital.directory.domain.Node;
-import eu.klavenessdigital.directory.parser.NodeFactory;
-import eu.klavenessdigital.directory.parser.NodeParser;
-import eu.klavenessdigital.directory.parser.NodeParserFactory;
-import eu.klavenessdigital.directory.service.ClassificationFilterService;
-import eu.klavenessdigital.directory.service.FolderFilterService;
-import eu.klavenessdigital.directory.service.TreeBuilder;
-import eu.klavenessdigital.directory.service.TreeRenderer;
-import eu.klavenessdigital.directory.util.NodeFormatter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.web.servlet.MockMvc;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-
+@SpringBootTest
+@AutoConfigureMockMvc
 class IntegrationTest {
 
-    private Node root;
-    private ClassificationFilterService classificationFilterService;
-    private TreeRenderer renderer;
-    private FolderFilterService folderFilterService;
+    @Autowired
+    private MockMvc mockMvc;
 
     @BeforeEach
-    public void init(){
-        classificationFilterService = new ClassificationFilterService();
-        renderer = new TreeRenderer();
-        folderFilterService=new FolderFilterService();
+    void uploadCsvFile() throws Exception {
+        // Load test CSV file
+        byte[] fileContent = Files.readAllBytes(Path.of("src/test/resources/directory-structure.csv"));
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "directory-structure.csv",
+                MediaType.TEXT_PLAIN_VALUE,
+                fileContent
+        );
 
-
-        String filePath = "src/test/resources/directory-structure.csv";
-        NodeParser parser = NodeParserFactory.getParser(filePath);
-        List<String[]> rows = null;
-        try {
-            rows = parser.parse(filePath);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        List<Node> nodes = new ArrayList<>();
-        for (String[] row : rows) {
-            // skip header if present
-            if (row[0].equalsIgnoreCase("id")) continue;
-            nodes.add(NodeFactory.fromCsvRow(row));
-        }
-
-        TreeBuilder treeBuilder = new TreeBuilder();
-        root = treeBuilder.buildTree(nodes);
+        // Upload the file into DirectoryController cache
+        mockMvc.perform(multipart("/api/directory/upload")
+                        .file(file))
+                .andExpect(status().isOk())
+                .andExpect(content().string("File uploaded and parsed successfully!"));
     }
 
     @Test
-    void rendersTreeMatchesExpectedOutput() throws IOException {
-        String actualOutput = renderer.renderTree(root);
+    void rendersTreeMatchesExpectedOutput() throws Exception {
         String expectedOutput = Files.readString(Path.of("src/test/resources/tree.txt"));
+
+        String actualOutput = mockMvc.perform(get("/api/directory/tree"))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
 
         assertEquals(expectedOutput.trim(), actualOutput.trim());
     }
 
     @Test
-    void filtersTopSecretMatchesExpectedOutput() throws IOException {
-        String actual = NodeFormatter.formatAsList(classificationFilterService.listFilesByClassification(root, Set.of(Classification.TOP_SECRET)));
+    void filtersTopSecretMatchesExpectedOutput() throws Exception {
         String expected = Files.readString(Path.of("src/test/resources/top-secret.txt"));
 
+        String actual = mockMvc.perform(get("/api/directory/files/top-secret")
+                        .param("classifications", "TOP SECRET"))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
         assertEquals(expected.trim(), actual.trim());
     }
+
     @Test
-    void filtersSecretAndTopSecretMatchesExpectedOutput() throws IOException {
-        String actual = NodeFormatter.formatAsList(classificationFilterService.listFilesByClassification(root, Set.of(Classification.SECRET,Classification.TOP_SECRET)));
+    void filtersSecretAndTopSecretMatchesExpectedOutput() throws Exception {
         String expected = Files.readString(Path.of("src/test/resources/secret-or-top-secret.txt"));
 
+        String actual = mockMvc.perform(get("/api/directory/files/secret-or-top-secret")
+                        .param("classifications", "SECRET")
+                        .param("classifications", "Top secret"))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
         assertEquals(expected.trim(), actual.trim());
     }
 
     @Test
-    void filtersFolderMatchesExpectedOutput() throws IOException {
-        String actual = NodeFormatter.formatAsList(folderFilterService.nonPublicUnderParticularFolder(root, "folder11"));
+    void filtersFolderMatchesExpectedOutput() throws Exception {
         String expected = Files.readString(Path.of("src/test/resources/non-public-folder11.txt"));
+
+        String actual = mockMvc.perform(get("/api/directory/files/non-public")
+                        .param("folderName", "folder11"))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
 
         assertEquals(expected.trim(), actual.trim());
     }
-
-
 }
 

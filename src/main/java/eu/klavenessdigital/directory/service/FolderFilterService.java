@@ -3,12 +3,14 @@ package eu.klavenessdigital.directory.service;
 import eu.klavenessdigital.directory.domain.Classification;
 import eu.klavenessdigital.directory.domain.Node;
 import eu.klavenessdigital.directory.exception.FilterException;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
+@Service
 public class FolderFilterService {
+
     public List<Node> nonPublicUnderParticularFolder(Node root, String folderName) {
         Node targetFolder = findNodeByName(root, folderName);
         if (targetFolder == null) {

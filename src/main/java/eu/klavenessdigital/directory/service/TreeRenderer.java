@@ -1,12 +1,15 @@
 package eu.klavenessdigital.directory.service;
 
 import eu.klavenessdigital.directory.domain.Node;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+@Service
 public class TreeRenderer {
+
     public String renderTree(Node root) {
         StringBuilder sb = new StringBuilder();
         renderNode(root, sb, 0);

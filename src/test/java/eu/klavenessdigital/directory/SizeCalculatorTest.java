@@ -16,6 +16,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class SizeCalculatorTest {
 
+    private SizeCalculator sizeCalculator=new SizeCalculator();
+
     @Test
     void sumsOnlyPublicFiles() {
         Node root = new Node("1",  null, "root","directory", 0, null, null);
@@ -27,13 +29,13 @@ class SizeCalculatorTest {
 
         Node builtRoot = builder.buildTree(nodes);
 
-        assertEquals(60, SizeCalculator.sumPublicFiles(builtRoot));
+        assertEquals(60, sizeCalculator.sumPublicFiles(builtRoot));
     }
 
     @Test
     void testEmptyClassificationThrowsException() {
         Node invalidNode = new Node("1", null, "InvalidType", "file", 10, null, null);
-        assertThrows(FilterException.class, () -> SizeCalculator.sumPublicFiles(invalidNode));
+        assertThrows(FilterException.class, () -> sizeCalculator.sumPublicFiles(invalidNode));
     }
 }
 

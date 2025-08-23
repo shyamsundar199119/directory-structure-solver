@@ -1,8 +1,11 @@
 package eu.klavenessdigital.directory.parser;
 
 import eu.klavenessdigital.directory.util.FileUtil;
+import org.springframework.stereotype.Component;
 
+@Component
 public class NodeParserFactory {
+
 
     public static NodeParser getParser(String filePath) {
         if (FileUtil.isCsvFile(filePath)) {

@@ -3,6 +3,7 @@ package eu.klavenessdigital.directory.service;
 import eu.klavenessdigital.directory.domain.Classification;
 import eu.klavenessdigital.directory.domain.Node;
 import eu.klavenessdigital.directory.exception.FilterException;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +18,7 @@ import java.util.stream.Collectors;
  * - 3c: List files with classification "Secret"
  * - 3d: List files with classification "Secret" or "Top secret"
  */
+@Service
 public class ClassificationFilterService {
 
     public List<Node> listFilesByClassification(Node root, Set<Classification> classifications) {

@@ -2,6 +2,7 @@ package eu.klavenessdigital.directory.service;
 
 import eu.klavenessdigital.directory.domain.Node;
 import eu.klavenessdigital.directory.exception.TreeBuildingException;
+import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.List;
@@ -16,6 +17,7 @@ import static java.util.Objects.isNull;
  * Tasks covered:
  * - 3e: Calculation size of all files with classification "Public"
  */
+@Service
 public class TreeBuilder {
 
     public Node buildTree(List<Node> nodes) {

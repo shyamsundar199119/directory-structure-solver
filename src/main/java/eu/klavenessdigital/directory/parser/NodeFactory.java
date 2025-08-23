@@ -5,9 +5,9 @@ import eu.klavenessdigital.directory.domain.Node;
 
 public class NodeFactory {
 
-    // expects CSV columns in fixed order:
+    // expects columns in fixed order:
     // id; parentId; name; type; size; classification; checksum
-    public static Node fromCsvRow(String[] values) {
+    public static Node fromRow(String[] values) {
         if (values.length < 7) {
             throw new IllegalArgumentException("Invalid row: " + String.join(";", values));
         }
