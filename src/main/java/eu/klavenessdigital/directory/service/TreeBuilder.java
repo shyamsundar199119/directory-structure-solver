@@ -1,12 +1,14 @@
 package eu.klavenessdigital.directory.service;
 
 import eu.klavenessdigital.directory.domain.Node;
+import eu.klavenessdigital.directory.exception.TreeBuildingException;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static eu.klavenessdigital.directory.util.ValidationUtil.isNullOrEmpty;
+import static java.util.Objects.isNull;
 
 /**
  * Service for building the tree
@@ -22,6 +24,13 @@ public class TreeBuilder {
 
         // put all nodes in map
         for (Node n : nodes) {
+            if (isNull(n.getId()) || n.getId().trim().isEmpty()) {
+                throw new TreeBuildingException("Node found with null/empty ID: " + n);
+            }
+
+            if (nodeMap.containsKey(n.getId())) {
+                throw new TreeBuildingException("Duplicate node ID detected: " + n.getId());
+            }
             nodeMap.put(n.getId(), n);
         }
 
@@ -34,13 +43,13 @@ public class TreeBuilder {
                 if (parent != null) {
                     parent.addChild(n);
                 } else {
-                    throw new IllegalStateException("Parent with id " + n.getParentId() + " not found for node " + n.getId());
+                    throw new TreeBuildingException("Parent with id " + n.getParentId() + " not found for node " + n.getId());
                 }
             }
         }
 
         if (root == null) {
-            throw new IllegalStateException("No root node found in CSV!");
+            throw new TreeBuildingException("No root node found in CSV!");
         } else {
             root.calculateSize();
         }

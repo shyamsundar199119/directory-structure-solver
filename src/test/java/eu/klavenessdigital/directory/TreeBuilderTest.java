@@ -2,6 +2,7 @@ package eu.klavenessdigital.directory;
 
 import eu.klavenessdigital.directory.domain.Classification;
 import eu.klavenessdigital.directory.domain.Node;
+import eu.klavenessdigital.directory.exception.TreeBuildingException;
 import eu.klavenessdigital.directory.service.TreeBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,15 +37,21 @@ class TreeBuilderTest {
     }
 
     @Test
-    void testThrowsIfNoRootNode() {
-        // All nodes have a parent, so no root exists
-        Node child1 = new Node("1", "file1.txt","99",  "file", 100, null, "sha1");
-        Node child2 = new Node("2", "file2.txt","99",  "file", 200, null, "sha2");
+    void testDuplicateNodeIdThrowsException() {
+        Node n1 = new Node("1", null, "folder", "root", 0, null,null );
+        Node n2 = new Node("1", "root", "file", "dupFile", 5, Classification.PUBLIC,null );
 
-        List<Node> nodes = List.of(child1, child2);
+        List<Node> nodes = Arrays.asList(n1, n2);
 
-        assertThrows(IllegalStateException.class, () -> builder.buildTree(nodes),
-                "Expected exception when no root node is present in CSV!");
+        assertThrows(TreeBuildingException.class, () -> builder.buildTree(nodes));
+    }
+
+    @Test
+    void testNoRootNodeThrowsException() {
+        Node file = new Node("2", "99", "file", "file1", 10, Classification.PUBLIC,null);
+        List<Node> nodes = Arrays.asList(file);
+
+        assertThrows(TreeBuildingException.class, () -> builder.buildTree(nodes));
     }
 }
 

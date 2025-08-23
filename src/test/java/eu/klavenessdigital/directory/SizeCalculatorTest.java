@@ -2,6 +2,7 @@ package eu.klavenessdigital.directory;
 
 import eu.klavenessdigital.directory.domain.Classification;
 import eu.klavenessdigital.directory.domain.Node;
+import eu.klavenessdigital.directory.exception.FilterException;
 import eu.klavenessdigital.directory.service.SizeCalculator;
 import eu.klavenessdigital.directory.service.TreeBuilder;
 import org.junit.jupiter.api.Test;
@@ -10,6 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 
 class SizeCalculatorTest {
@@ -26,6 +28,12 @@ class SizeCalculatorTest {
         Node builtRoot = builder.buildTree(nodes);
 
         assertEquals(60, SizeCalculator.sumPublicFiles(builtRoot));
+    }
+
+    @Test
+    void testEmptyClassificationThrowsException() {
+        Node invalidNode = new Node("1", null, "InvalidType", "file", 10, null, null);
+        assertThrows(FilterException.class, () -> SizeCalculator.sumPublicFiles(invalidNode));
     }
 }
 

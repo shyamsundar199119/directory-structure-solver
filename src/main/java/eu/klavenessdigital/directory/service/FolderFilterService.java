@@ -2,6 +2,7 @@ package eu.klavenessdigital.directory.service;
 
 import eu.klavenessdigital.directory.domain.Classification;
 import eu.klavenessdigital.directory.domain.Node;
+import eu.klavenessdigital.directory.exception.FilterException;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -9,12 +10,21 @@ import java.util.List;
 
 public class FolderFilterService {
     public List<Node> nonPublicUnderParticularFolder(Node root, String folderName) {
-        List<Node> result = new ArrayList<>();
-        Node folder11 = findNodeByName(root, folderName);
-        if (folder11 != null) {
-            collectNonPublic(folder11, result);
+        Node targetFolder = findNodeByName(root, folderName);
+        if (targetFolder == null) {
+            throw new FilterException("Folder with name '" + folderName + "' not found in tree");
         }
-        result.sort(Comparator.comparing(Node::getName));
+
+        List<Node> result = new ArrayList<>();
+        collectNonPublic(targetFolder, result);
+
+        if (result.isEmpty()) {
+            throw new FilterException(
+                    "No non-public files found under folder '" + folderName + "'"
+            );
+        }
+
+        result.sort(Node::compareTo); // since Node is Comparable
         return result;
     }
 
