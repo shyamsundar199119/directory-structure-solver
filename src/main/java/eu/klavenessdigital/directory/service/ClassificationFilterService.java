@@ -3,6 +3,7 @@ package eu.klavenessdigital.directory.service;
 import eu.klavenessdigital.directory.domain.Classification;
 import eu.klavenessdigital.directory.domain.Node;
 import eu.klavenessdigital.directory.exception.FilterException;
+import eu.klavenessdigital.directory.util.Constants;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -41,7 +42,7 @@ public class ClassificationFilterService {
 
     private List<Node> collectFiles(Node node) {
         List<Node> result = new ArrayList<>();
-        if ("file".equalsIgnoreCase(node.getType())) {
+        if (Constants.TYPE_FILE.equalsIgnoreCase(node.getType())) {
             result.add(node);
         }
         for (Node child : node.getChildren()) {

@@ -15,7 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-@Component
+@Component("csvParser")
 public class CsvParser implements NodeParser {
 
     private final String delimiter;
@@ -30,6 +30,11 @@ public class CsvParser implements NodeParser {
     public CsvParser(String delimiter, boolean hasHeader) {
         this.delimiter = delimiter;
         this.hasHeader = hasHeader;
+    }
+
+    @Override
+    public boolean supports(String fileName) {
+        return fileName != null && fileName.toLowerCase().endsWith(".csv");
     }
 
     /**

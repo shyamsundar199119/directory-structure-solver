@@ -1,19 +1,20 @@
 package eu.klavenessdigital.directory.parser;
 
-import eu.klavenessdigital.directory.util.FileUtil;
 import org.springframework.stereotype.Component;
+import java.util.List;
 
 @Component
 public class NodeParserFactory {
+    private final List<NodeParser> parsers;
 
+    public NodeParserFactory(List<NodeParser> parsers) {
+        this.parsers = parsers;
+    }
 
-    public static NodeParser getParser(String filePath) {
-        if (FileUtil.isCsvFile(filePath)) {
-            return new CsvParser();
-        } else if (FileUtil.isExcelFile(filePath)) {
-            return new ExcelParser();
-        }
-        // fallback
-        throw new IllegalArgumentException("Unsupported file format: " + filePath);
+    public NodeParser getParser(String fileName) {
+        return parsers.stream()
+                .filter(parser -> parser.supports(fileName))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unsupported file format: " + fileName));
     }
 }

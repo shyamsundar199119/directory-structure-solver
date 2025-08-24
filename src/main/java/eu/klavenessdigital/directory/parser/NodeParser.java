@@ -8,4 +8,5 @@ import java.util.List;
 
 public interface NodeParser {
     List<Node> parse(InputStream fileStream) throws IOException;
+    boolean supports(String fileName);
 }

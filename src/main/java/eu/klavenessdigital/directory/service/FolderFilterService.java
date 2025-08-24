@@ -3,6 +3,7 @@ package eu.klavenessdigital.directory.service;
 import eu.klavenessdigital.directory.domain.Classification;
 import eu.klavenessdigital.directory.domain.Node;
 import eu.klavenessdigital.directory.exception.FilterException;
+import eu.klavenessdigital.directory.util.Constants;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -40,7 +41,7 @@ public class FolderFilterService {
     }
 
     private void collectNonPublic(Node node, List<Node> result) {
-        if ("file".equals(node.getType()) && (node.getClassification() == null || Classification.PUBLIC != node.getClassification())) {
+        if (Constants.TYPE_FILE.equals(node.getType()) && (node.getClassification() == null || Classification.PUBLIC != node.getClassification())) {
             result.add(node);
         }
         for (Node child : node.getChildren()) {
